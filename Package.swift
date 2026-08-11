@@ -9,18 +9,38 @@ let package = Package(
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
             name: "swift-gpt",
-            targets: ["swift-gpt"]
+            targets: ["SwiftGPT"]
         ),
+        .executable(
+            name: "train",
+            targets: ["Train"]
+        ),
+    ],
+    dependencies: [
+        .package(url: "https://github.com/ml-explore/mlx-swift.git", exact: "0.31.4") // Support Swift 6.2 for now
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "swift-gpt"
+            name: "SwiftGPT",
+            dependencies: [
+                .product(name: "MLX", package: "mlx-swift"),
+                .product(name: "MLXNN", package: "mlx-swift")
+            ]
+        ),
+        .executableTarget(
+            name: "Train",
+            dependencies: [
+                "SwiftGPT",
+                .product(name: "MLX", package: "mlx-swift"),
+                .product(name: "MLXOptimizers", package: "mlx-swift")
+                
+            ]
         ),
         .testTarget(
-            name: "swift-gptTests",
-            dependencies: ["swift-gpt"]
+            name: "SwiftGPTTests",
+            dependencies: ["SwiftGPT"]
         ),
     ]
 )
