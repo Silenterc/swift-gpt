@@ -21,7 +21,8 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/ml-explore/mlx-swift.git", exact: "0.31.4") // Support Swift 6.2 for now
+        .package(url: "https://github.com/ml-explore/mlx-swift.git", exact: "0.31.4"), // Support Swift 6.2 for now
+        .package(url: "https://github.com/ml-explore/mlx-swift-lm.git", exact: "3.31.4")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -30,7 +31,8 @@ let package = Package(
             name: "SwiftGPT",
             dependencies: [
                 .product(name: "MLX", package: "mlx-swift"),
-                .product(name: "MLXNN", package: "mlx-swift")
+                .product(name: "MLXNN", package: "mlx-swift"),
+                .product(name: "MLXLMCommon", package: "mlx-swift-lm")
             ]
         ),
         .executableTarget(
