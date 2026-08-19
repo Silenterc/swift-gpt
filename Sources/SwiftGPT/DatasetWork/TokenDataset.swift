@@ -59,7 +59,7 @@ class TokenDataset {
         self.shards = shards
     }
     
-    /// Get `count` of tokens at a given `offset`
+    /// Get `count` of tokens (their ids) at a given `offset`
     /// Works across the whole sharded `tokenDirectory`
     func getTokens(at offset: Int, count: Int) throws -> [UInt32] {
         assert(offset >= 0 && offset <= availableTokens)
