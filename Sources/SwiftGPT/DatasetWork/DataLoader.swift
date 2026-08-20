@@ -10,7 +10,7 @@ import MLX
 
 /// Loads a pair of `(inputIds, targetIds)` from the given `dataset: TokenDataset`
 /// Uses sliding-window sampling to generate inputs and targets
-class DataLoader {
+public class DataLoader {
     private let dataset: TokenDataset
     private let batchSize: Int
     private let maxLength: Int
@@ -23,7 +23,7 @@ class DataLoader {
     /// - parameter batchSize: The number of sequences in each batch
     /// - parameter maxLength: The maximum number of tokens in each sequence
     /// - parameter stride: The step size between the sequences
-    init(dataset: TokenDataset, batchSize: Int, maxLength: Int, stride: Int) {
+    public init(dataset: TokenDataset, batchSize: Int, maxLength: Int, stride: Int) {
         self.dataset = dataset
         self.batchSize = batchSize
         self.maxLength = maxLength
@@ -32,7 +32,8 @@ class DataLoader {
     
     /// Loads the next batch of input and target token IDs
     /// Returns `nil` when there are none left
-    func nextBatch() throws -> (inputIds: MLXArray, targetIds: MLXArray)? {
+    /// Both output tensors have the shape `[completedBatches, maxlength]`
+    public func nextBatch() throws -> (inputIds: MLXArray, targetIds: MLXArray)? {
         var inputIdsRet: [UInt32] = []
         var targetsIdsRet: [UInt32] = []
         

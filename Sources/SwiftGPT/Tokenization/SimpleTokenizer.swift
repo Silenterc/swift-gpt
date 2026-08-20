@@ -67,7 +67,7 @@ public struct SimpleTokenizer: MyTokenizer {
  The functions below are mostly gonna be very dummy implementations because
  Im not gonna need those features, I just want the conformance to Tokenizer
  */
-extension SimpleTokenizer : Tokenizer {
+extension SimpleTokenizer : MLXLMCommon.Tokenizer {
     public func applyChatTemplate(messages: [[String : any Sendable]], tools: [[String : any Sendable]]?, additionalContext: [String : any Sendable]?) throws -> [Int] {
         []
     }

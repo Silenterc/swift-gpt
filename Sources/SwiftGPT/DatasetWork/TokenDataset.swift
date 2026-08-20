@@ -20,7 +20,7 @@ private struct TokenShard {
 }
 
 /// Reads and provides tokens saved by `TokenFileWriter` in the `tokenDirectory`
-class TokenDataset {
+public class TokenDataset {
     private let tokenDirectory: URL
     private let availableTokens: Int
     private var shards: [TokenShard]
@@ -28,7 +28,7 @@ class TokenDataset {
     private var currentShardIndex: Int?
     private var currentShardData: Data?
     
-    init(tokenDirectory: URL) throws {
+    public init(tokenDirectory: URL) throws {
         assert(FileManager.default.fileExists(atPath: tokenDirectory.path))
         self.tokenDirectory = tokenDirectory
         
@@ -61,7 +61,7 @@ class TokenDataset {
     
     /// Get `count` of tokens (their ids) at a given `offset`
     /// Works across the whole sharded `tokenDirectory`
-    func getTokens(at offset: Int, count: Int) throws -> [UInt32] {
+    public func getTokens(at offset: Int, count: Int) throws -> [UInt32] {
         assert(offset >= 0 && offset <= availableTokens)
         assert(count >= 0)
         let readCount = min(count, availableTokens - offset)

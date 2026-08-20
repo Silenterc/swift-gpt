@@ -162,7 +162,7 @@ func testTheGreatGatsby() async throws {
         .deletingLastPathComponent() // SwiftGPTTests
         .deletingLastPathComponent() // Tests
         .deletingLastPathComponent() // swift-gpt
-        .appendingPathComponent("data/The-Great-Gatsby.txt")
+        .appendingPathComponent("data/texts/The-Great-Gatsby.txt")
     
     let fileReader = LocalFileReader()
     let text = try fileReader.read(from: gatsbyURL)

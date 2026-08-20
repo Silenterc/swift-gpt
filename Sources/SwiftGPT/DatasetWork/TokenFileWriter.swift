@@ -8,7 +8,7 @@
 import Foundation
 
 /// Writes tokens to disk as continuous sharded binary files
-class TokenFileWriter {
+public class TokenFileWriter {
     private let outputDirectory: URL
     private let maxTokensPerShard: Int
     
@@ -16,7 +16,7 @@ class TokenFileWriter {
     private var tokensInShard = 0
     private var fileHandle: FileHandle?
     
-    init(outputDirectory: URL, maxTokensPerShard: Int, shardIndex: Int = 0) throws {
+    public init(outputDirectory: URL, maxTokensPerShard: Int, shardIndex: Int = 0) throws {
         self.outputDirectory = outputDirectory
         self.maxTokensPerShard = maxTokensPerShard
         self.shardIndex = shardIndex
@@ -32,7 +32,7 @@ class TokenFileWriter {
     
     /// Writes the tokens array into managed sharded files
     /// Creates new continuous shards when needed during one session
-    func write(_ tokens: [UInt32]) throws {
+    public func write(_ tokens: [UInt32]) throws {
         var offset = 0
         
         while offset < tokens.count {
@@ -52,7 +52,7 @@ class TokenFileWriter {
         }
     }
     
-    func finish() throws {
+    public func finish() throws {
         try self.fileHandle?.close()
         self.fileHandle = nil
     }

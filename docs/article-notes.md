@@ -13,7 +13,9 @@
 - Simple tokenId embedding isnt enough because every tokenId from different parts of a text would get mapped to the same place
     - The model therefore wouldnt know the order of words
     - Can fix this by relative x absolute positional embeddings
-
+- So the data flow will be: .txt training data -> LocalFileReader -> strings -> Tokenizer -> tokenIds -> TokenFileWriter -> .bin token files -> TokenDataset -> DataLoader + sliding-window sampling -> (inputs, targets) -> Embedding
+- Storing and loading individual .txt files isnt as scalable as I thought, modern datasets use Parquet files or json
+- I will use ~ 1000 books from Project Gutenberg when I will be training the model - 400 novels, 150 short stories, 100 science fiction, 100 philosophy, 100 history, 100 science, 50 essays
 
 
 
