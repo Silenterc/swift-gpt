@@ -9,7 +9,7 @@ import MLXHuggingFace
 import Tokenizers
 import MLXLMCommon
 
-/// Fetches a Byte-Pair Encoding Tokenizer used in GPT2
+/// Fetches the Byte-Pair Encoding Tokenizer used by GPT-2
 public func getTokenizer() async throws -> any MLXLMCommon.Tokenizer {
     let hfTokenizer = try await AutoTokenizer.from(pretrained: "openai-community/gpt2")
     let tokenizer = #adaptHuggingFaceTokenizer(hfTokenizer)

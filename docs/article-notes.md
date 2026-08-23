@@ -15,7 +15,8 @@
     - Can fix this by relative x absolute positional embeddings
 - So the data flow will be: .txt training data -> LocalFileReader -> strings -> Tokenizer -> tokenIds -> TokenFileWriter -> .bin token files -> TokenDataset -> DataLoader + sliding-window sampling -> (inputs, targets) -> Embedding
 - Storing and loading individual .txt files isnt as scalable as I thought, modern datasets use Parquet files or json
-- I will use ~ 1000 books from Project Gutenberg when I will be training the model - 400 novels, 150 short stories, 100 science fiction, 100 philosophy, 100 history, 100 science, 50 essays
+- I will use ~ 18 000 books from Project Gutenberg when I will be training the model - mostly novels, then short stories, science fiction, philosophy, history, science, essays
+- I want around 2B tokens so I can aim for 100-150M parameters
 
 
 

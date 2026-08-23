@@ -32,7 +32,7 @@ public class DataLoader {
     
     /// Loads the next batch of input and target token IDs
     /// Returns `nil` when there are none left
-    /// Both output tensors have the shape `[completedBatches, maxlength]`
+    /// Both output tensors have the shape `[completedSamples, maxLength]`
     public func nextBatch() throws -> (inputIds: MLXArray, targetIds: MLXArray)? {
         var inputIdsRet: [UInt32] = []
         var targetsIdsRet: [UInt32] = []
@@ -40,7 +40,7 @@ public class DataLoader {
         inputIdsRet.reserveCapacity(batchSize * maxLength)
         targetsIdsRet.reserveCapacity(batchSize * maxLength)
         
-        var completedBatches = 0
+        var completedSamples = 0
         
         for _ in 0 ..< batchSize {
             let ids = try dataset.getTokens(at: currentIndex, count: maxLength + 1)
@@ -52,17 +52,17 @@ public class DataLoader {
             inputIdsRet.append(contentsOf: ids.dropLast())
             targetsIdsRet.append(contentsOf: ids.dropFirst())
             
-            completedBatches += 1
+            completedSamples += 1
             currentIndex += stride
         }
         
-        guard completedBatches > 0 else {
+        guard completedSamples > 0 else {
             return nil
         }
         
         return (
-            MLXArray(inputIdsRet, [completedBatches, maxLength]),
-            MLXArray(targetsIdsRet, [completedBatches, maxLength])
+            MLXArray(inputIdsRet, [completedSamples, maxLength]),
+            MLXArray(targetsIdsRet, [completedSamples, maxLength])
         )
     }
 }

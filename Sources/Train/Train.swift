@@ -8,6 +8,7 @@
 import Foundation
 import SwiftGPT
 import MLX
+import MLXNN
 
 @main
 struct Train {
@@ -24,9 +25,10 @@ struct Train {
         .appendingPathComponent("tokens")
     
     private static let vocabSize = 50_257 // gpt2 BPE tokenizer vocab size
-    private static let batchSize = 16
-    private static let maxLength = 1024
-    private static let stride = 512
+    private static let batchSize = 16 // tunable
+    private static let maxLength = 1024 // same as contextLength for now
+    private static let stride = 1024 // no overlap
+    private static let embeddingDimension = 128 // realistically should be higher
     
     static func main() async {
         MLXRandom.seed(67)
@@ -52,6 +54,16 @@ struct Train {
                 maxLength: maxLength,
                 stride: stride
             )
+            
+            // Generate the embeddings with absolute positional embedding
+            let tokenEmbedding = Embedding(embeddingCount: vocabSize, dimensions: embeddingDimension)
+            let positionalEmbedding = Embedding(embeddingCount: maxLength, dimensions: embeddingDimension)
+            while let batch = try loader.nextBatch() {
+                let tokenEmbeddings = tokenEmbedding(batch.inputIds)
+                let positionalEmbeddings = positionalEmbedding(MLXArray(0..<maxLength))
+                
+                let inputEmbeddings = tokenEmbeddings + positionalEmbeddings
+            }
             
         } catch {
             print("Error: \(error)")
