@@ -18,27 +18,18 @@
 - I will use ~ 18 000 books from Project Gutenberg when I will be training the model - mostly novels, then short stories, science fiction, philosophy, history, science, essays
 - I want around 2B tokens so I can aim for 100-150M parameters
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # Chapter 3 - Coding attention mechanisms
+- The heart of the algo
+- Softmax is used for normalization
+- Each embedding gets transformed into Query, Key and Value vectors by a linear transformation
+- Query vector means what I am looking for, key means what they can offer me, and if query and key are similar (their dot product is big), they attend
+- These similarity scores get transformed into attention weights via softmax normalization (and beforehand scaled by / srt (dim))
+- Then we add the values weighted by those weights to get the context vector, which then gets used to update the embedding
+$$Z = A \times V = \text{softmax}\left(\frac{Q K^T}{\sqrt{d_k}}\right)V$$
+- In order for the LLM to not "cheat" and see all (the following) tokens ahead of time, they get -inf scored - called masking/causal attention
+- K x Q can get very large for large context window sizes
+- We can use dropout to avoid overfitting - randomly drop data during training, in our case attention weights from the attention w matrix
+- For the article probably go with general attention info -> Q,K,V + softmax explanation -> Causal Attention -> Multi Head
 
 # Chapter 4 - Implementing a GPT model from scratch to generate text
 
