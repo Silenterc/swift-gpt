@@ -9,7 +9,7 @@ import MLXNN
 import MLX
 
 /**
- A simple self-attention module, using MLXArrays. It does not implement masking etc.
+ A simple self-attention module, using MLXArrays. It does not implement masking etc
  */
 public class SelfAttention: Module, UnaryLayer {
     var wQuery: MLXArray
@@ -23,7 +23,7 @@ public class SelfAttention: Module, UnaryLayer {
     }
     
     /**
-     Performs an attention pass.
+     Performs an attention pass
      - parameter x: Needs to be a 2D array of shape `[numTokens, inputDimensions]`
      */
     public func callAsFunction(_ x: MLX.MLXArray) -> MLX.MLXArray {
