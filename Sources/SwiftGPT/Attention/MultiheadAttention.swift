@@ -66,22 +66,22 @@ public class MultiheadAttention: Module, UnaryLayer {
         
         let queries = self.wQuery(input)
             .reshaped(batch, numTokens, self.numHeads, self.headDim) // Split among heads
-            .transposed(0, 2, 1, 3) // Move the head dim before the token dim so matmul operates per head
+            .swappedAxes(1, 2) // Move the head dim before the token dim so matmul operates per head
         let keys = self.wKey(input)
             .reshaped(batch, numTokens, self.numHeads, self.headDim)
-            .transposed(0, 2, 1, 3)
+            .swappedAxes(1, 2)
         let values = self.wValue(input)
             .reshaped(batch, numTokens, self.numHeads, self.headDim)
-            .transposed(0, 2, 1, 3)
+            .swappedAxes(1, 2)
         
-        let attentionScores = queries.matmul(keys.transposed(2, 3))
+        let attentionScores = queries.matmul(keys.swappedAxes(2, 3))
         let attentionWeights = self.getAttentionWeights(
             attentionScores: attentionScores,
             numTokens: numTokens
         )
         
         var contextVectors = attentionWeights.matmul(values)
-            .transposed(1, 2) // Bring back the shape
+            .swappedAxes(1, 2) // Bring back the shape
             .reshaped(batch, numTokens, self.outputDimensions) // Merge the heads
         if (!is3d) {
             // Remove the artificial batch dimension added for 2d input
