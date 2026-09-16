@@ -32,6 +32,15 @@ $$Z = A \times V = \text{softmax}\left(\frac{Q K^T}{\sqrt{d_k}}\right)V$$
 - For the article probably go with general attention info -> Q,K,V + softmax explanation -> Causal Attention -> Multi Head
 
 # Chapter 4 - Implementing a GPT model from scratch to generate text
+- GPT model = Input -> Embedding -> Transfrmer blocks -> Output layers -> Output
+- GPT 2 config of 124 params has: 50 257 vocab size, 1024 context length, 768 emb dim, 12 att heads, 12 layers, 0.1 dropout, false qkv bias
+- Transformer block = LayerNorm1 -> Attention -> Dropout -> shortcut -> LayerNorm2 -> Feed forward -> Dropout -> shortcut
+- LayerNorm normalizes the outputs of a NN to have a mean of 0 and variance 1, for better training (handle gradients better)
+- Feed forward = Linear(emb_dim, 4*emb_dim) -> GELU (act. function) -> Linear(4*emb_dim, emb_dim)
+- GELU/Activation functions introduce non-linearity, otherwise it would all just be one big linear projection, and the model wouldnt learn much nuance
+- Shortcut means adding the input of some layer/network to the output of it
+    - Helps with the vanishing gradient problem (earlier layers have smaller gradients)
+- 
 
 # Chapter 5 - Pretraining on unlabeled data
 

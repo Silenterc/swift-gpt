@@ -52,6 +52,9 @@ public class MultiheadAttention: Module, UnaryLayer {
         self.headDim = outputDimensions / numHeads
         
         self.outProj = Linear(outputDimensions, outputDimensions)
+        
+        super.init()
+        self.freeze(recursive: false, keys: ["causalMask"]) // Mask is non-trainable
     }
     
     public func callAsFunction(_ x: MLX.MLXArray) -> MLX.MLXArray {
@@ -72,7 +75,10 @@ public class MultiheadAttention: Module, UnaryLayer {
             .transposed(0, 2, 1, 3)
         
         let attentionScores = queries.matmul(keys.transposed(2, 3))
-        let attentionWeights = self.getAttentionWeights(attentionScores: attentionScores, numTokens: numTokens)
+        let attentionWeights = self.getAttentionWeights(
+            attentionScores: attentionScores,
+            numTokens: numTokens
+        )
         
         var contextVectors = attentionWeights.matmul(values)
             .transposed(1, 2) // Bring back the shape
