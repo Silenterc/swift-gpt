@@ -6,16 +6,16 @@
 //
 
 public struct GPTConfig: Sendable {
-    let vocabSize: Int
-    let contextLength: Int
-    let embeddingDimension: Int
-    let numHeads: Int
-    let numLayers: Int
-    let dropoutRate: Float
-    let qkvBias: Bool
+    public let vocabSize: Int
+    public let contextLength: Int
+    public let embeddingDimension: Int
+    public let numHeads: Int
+    public let numLayers: Int
+    public let dropoutRate: Float
+    public let qkvBias: Bool
 }
 
-extension GPTConfig {
+public extension GPTConfig {
     /// 124M parameters
     static let gpt2Small = GPTConfig(
         vocabSize: 50_257, // BPE tokenizer

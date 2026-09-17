@@ -24,11 +24,10 @@ struct Train {
         .deletingLastPathComponent() // swift-gpt/
         .appendingPathComponent("tokens")
     
-    private static let vocabSize = 50_257 // gpt2 BPE tokenizer vocab size
-    private static let batchSize = 16 // tunable
-    private static let maxLength = 1024 // same as contextLength for now
-    private static let stride = 1024 // no overlap
-    private static let embeddingDimension = 128 // realistically should be higher
+    private static let config = GPTConfig.gpt2Small
+    
+    private static let batchSize = 16
+    private static let stride = config.contextLength // No overlap
     
     static func main() async {
         MLXRandom.seed(67)
@@ -51,18 +50,22 @@ struct Train {
             let loader = try DataLoader(
                 dataset: TokenDataset(tokenDirectory: tokensDir),
                 batchSize: batchSize,
-                maxLength: maxLength,
+                maxLength: config.contextLength,
                 stride: stride
             )
             
-            // Generate the embeddings with absolute positional embedding
-            let tokenEmbedding = Embedding(embeddingCount: vocabSize, dimensions: embeddingDimension)
-            let positionalEmbedding = Embedding(embeddingCount: maxLength, dimensions: embeddingDimension)
+            let model = GPTModel(config: config)
+            
+            // For now this only performs forward passes
             while let batch = try loader.nextBatch() {
-                let tokenEmbeddings = tokenEmbedding(batch.inputIds)
-                let positionalEmbeddings = positionalEmbedding(MLXArray(0..<maxLength))
+                let logits = model(batch.inputIds)
                 
-                let inputEmbeddings = tokenEmbeddings + positionalEmbeddings
+                // inputIds:  [batch, tokens]
+                // targetIds: [batch, tokens]
+                // logits:    [batch, tokens, vocabSize]
+                print("Input:  \(batch.inputIds.shape)")
+                print("Target: \(batch.targetIds.shape)")
+                print("Logits: \(logits.shape)")
             }
             
         } catch {
