@@ -19,6 +19,10 @@ let package = Package(
             name: "train",
             targets: ["Train"]
         ),
+        .executable(
+            name: "prepare-dataset",
+            targets: ["PrepareDataset"]
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/ml-explore/mlx-swift.git", exact: "0.31.4"), // Support Swift 6.2 for now
@@ -42,8 +46,17 @@ let package = Package(
             name: "Train",
             dependencies: [
                 "SwiftGPT",
+                .product(name: "MLX", package: "mlx-swift"),
+                .product(name: "MLXNN", package: "mlx-swift"),
                 .product(name: "MLXLMCommon", package: "mlx-swift-lm"),
                 .product(name: "MLXOptimizers", package: "mlx-swift"),
+            ]
+        ),
+        .executableTarget(
+            name: "PrepareDataset",
+            dependencies: [
+                "SwiftGPT",
+                .product(name: "MLXLMCommon", package: "mlx-swift-lm"),
             ]
         ),
         .testTarget(

@@ -43,6 +43,12 @@ $$Z = A \times V = \text{softmax}\left(\frac{Q K^T}{\sqrt{d_k}}\right)V$$
 - 
 
 # Chapter 5 - Pretraining on unlabeled data
+- For my data, I will need to split the dataset into train/ and val/, with a split like 99/1%
+    - Then tokenize it and load it to/from there
+- 
+
+
+
 
 # Chapter 6 - Fine-tuning for classification
 

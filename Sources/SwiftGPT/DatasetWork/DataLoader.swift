@@ -65,4 +65,9 @@ public class DataLoader {
             MLXArray(targetsIdsRet, [completedSamples, maxLength])
         )
     }
+    
+    /// Resets the loader by setting its currently read index to 0
+    public func reset() {
+        currentIndex = 0
+    }
 }
