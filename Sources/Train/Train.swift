@@ -9,68 +9,108 @@ import Foundation
 import SwiftGPT
 import MLX
 import MLXNN
+import MLXOptimizers
 
 @main
 struct Train {
-    private static let dataDir = URL(fileURLWithPath: #filePath)
+    private static let baseDir = URL(fileURLWithPath: #filePath)
         .deletingLastPathComponent() // Train/
         .deletingLastPathComponent() // Sources/
         .deletingLastPathComponent() // swift-gpt/
-        .appendingPathComponent("data/texts")
-    
-    private static let tokensDir = URL(fileURLWithPath: #filePath)
-        .deletingLastPathComponent() // Train/
-        .deletingLastPathComponent() // Sources/
-        .deletingLastPathComponent() // swift-gpt/
-        .appendingPathComponent("tokens")
-    
+
+    private static let trainTokensDir = Self.baseDir
+        .appendingPathComponent("tokens/train")
+
+    private static let valTokensDir = Self.baseDir
+        .appendingPathComponent("tokens/val")
     private static let config = GPTConfig.gpt2Small
     
-    private static let batchSize = 16
+    private static let batchSize = 8
     private static let stride = config.contextLength // No overlap
     
     static func main() async {
         MLXRandom.seed(67)
         
         do {
-            let fileReader = LocalFileReader()
-            let tokenizer = try await getTokenizer()
-            let writer = try TokenFileWriter(outputDirectory: tokensDir, maxTokensPerShard: 100_000_000)
-            defer { try? writer.finish() }
+            let trainLoader = try DataLoader(
+                dataset: TokenDataset(tokenDirectory: trainTokensDir),
+                batchSize: batchSize,
+                maxLength: config.contextLength,
+                stride: stride
+            )
             
-            for file in try FileManager.default.contentsOfDirectory(at: dataDir, includingPropertiesForKeys: nil) {
-                let text = try fileReader.read(from: file)
-                var tokens = tokenizer.encode(text: text).map(UInt32.init)
-                // Add special End Of Sequence token after each text
-                tokens.append(UInt32(tokenizer.eosTokenId!))
-                
-                try writer.write(tokens)
-            }
-            
-            let loader = try DataLoader(
-                dataset: TokenDataset(tokenDirectory: tokensDir),
+            let valLoader = try DataLoader(
+                dataset: TokenDataset(tokenDirectory: valTokensDir),
                 batchSize: batchSize,
                 maxLength: config.contextLength,
                 stride: stride
             )
             
             let model = GPTModel(config: config)
+            let optimizer = AdamW(learningRate: 0.0004, weightDecay: 0.1)
+            let lossAndGrad = valueAndGrad(model: model, loss)
             
-            // For now this only performs forward passes
-            while let batch = try loader.nextBatch() {
-                let logits = model(batch.inputIds)
+            var globalStep = 0
+            let printLossFrequency = 50
+            let evalFrequency = 1000
+            
+            model.train()
+            
+            while let batch = try trainLoader.nextBatch() {
+                globalStep += 1
                 
-                // inputIds:  [batch, tokens]
-                // targetIds: [batch, tokens]
-                // logits:    [batch, tokens, vocabSize]
-                print("Input:  \(batch.inputIds.shape)")
-                print("Target: \(batch.targetIds.shape)")
-                print("Logits: \(logits.shape)")
+                let (trainLoss, grads) = lossAndGrad(model, batch.inputIds, batch.targetIds)
+                
+                optimizer.update(model: model, gradients: grads)
+                
+                eval(model, optimizer, trainLoss) // MLX Swift is lazy!
+                
+                if (globalStep % evalFrequency == 0) {
+                    try evaluateAndPrint(model, trainLoss, valLoader, globalStep)
+                } else if (globalStep % printLossFrequency == 0) {
+                    printLoss(trainLoss: trainLoss, globalStep: globalStep)
+                }
             }
             
         } catch {
             print("Error: \(error)")
         }
+    }
+    
+    private static func loss(model: GPTModel, inputs: MLXArray, targets: MLXArray) -> MLXArray {
+        let logits = model(inputs)
+        return crossEntropy(logits: logits, targets: targets, reduction: .mean)
+    }
+    
+    private static func printLoss(trainLoss: MLXArray, globalStep: Int) {
+        print("----- Step \(globalStep) -----")
+        print("Training Loss: \(trainLoss.item(Float.self))")
+    }
+    
+    private static func evaluateAndPrint(
+        _ model: GPTModel,
+        _ trainLoss: MLXArray,
+        _ valLoader: DataLoader,
+        _ globalStep: Int
+    ) throws {
+        model.train(false)
+        defer { model.train() } // Set to training mode after this function finishes
+        valLoader.reset()
+        
+        let validationBatches = 20
+        var validationLoss = 0.0
+        var batchCount = 0
+        
+        while batchCount < validationBatches,
+              let batch = try valLoader.nextBatch() {
+            let valLoss = loss(model: model, inputs: batch.inputIds, targets: batch.targetIds)
+            validationLoss += Double(valLoss.item(Float.self)) // No need for eval(), item() runs it
+            batchCount += 1
+        }
+        let averageValLoss = validationLoss / Double(batchCount)
+        print("----- Step \(globalStep) Evaluation -----")
+        print("Training Loss: \(trainLoss.item(Float.self))")
+        print("Validation Loss: \(averageValLoss)")
     }
 }
 
