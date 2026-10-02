@@ -98,6 +98,10 @@ public class TokenDataset {
            
     }
     
+    public func getAvailableTokens() -> Int {
+        self.availableTokens
+    }
+    
     private func getShardIndex(containing offset: Int) -> Int? {
         // Try the cached shard, will work for sequential reading
         if let currentShardIndex {

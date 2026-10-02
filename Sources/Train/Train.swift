@@ -31,12 +31,22 @@ struct Train {
     private static let batchSize = 8
     private static let stride = config.contextLength // No overlap
     
+    // Training loop optimization constants
+    private static let warmupFraction = 0.01 // For learning rate warmup
+    private static let peakLearningRate: Float = 4e-4
+    private static let minLearningRate: Float = peakLearningRate * 0.1
+    private static let maxGradientNorm: Float = 1.0
+    
     static func main() async {
         MLXRandom.seed(67)
         
         do {
-            let trainLoader = try DataLoader(
-                dataset: TokenDataset(tokenDirectory: trainTokensDir),
+            let trainDataset = try TokenDataset(tokenDirectory: trainTokensDir)
+            let totalExpectedSteps = trainDataset.getAvailableTokens() / (batchSize * stride) // Expected optimizer steps
+            let warmupSteps = Int(Double(totalExpectedSteps) * warmupFraction) // For learning rate warmup
+            
+            let trainLoader = DataLoader(
+                dataset: trainDataset,
                 batchSize: batchSize,
                 maxLength: config.contextLength,
                 stride: stride
@@ -50,7 +60,7 @@ struct Train {
             )
             
             let model = GPTModel(config: config)
-            let optimizer = AdamW(learningRate: 0.0004, weightDecay: 0.1, biasCorrection: true)
+            let optimizer = AdamW(learningRate: peakLearningRate, weightDecay: 0.1, biasCorrection: true)
             let lossAndGrad = valueAndGrad(model: model, loss)
             
             var globalStep = 0
@@ -62,10 +72,19 @@ struct Train {
             
             while let batch = try trainLoader.nextBatch() {
                 globalStep += 1
+                optimizer.learningRate = learningRate(
+                    step: globalStep, totalSteps: totalExpectedSteps, warmupSteps: warmupSteps,
+                    peakLearningRate: peakLearningRate, minLearningRate: minLearningRate
+                )
                 
                 let (trainLoss, grads) = lossAndGrad(model, batch.inputIds, batch.targetIds)
                 
-                optimizer.update(model: model, gradients: grads)
+                var gradients = grads
+                if globalStep >= warmupSteps {
+                    (gradients, _) = clipGradNorm(gradients: grads, maxNorm: maxGradientNorm)
+                } // Gradient clipping
+                
+                optimizer.update(model: model, gradients: gradients)
                 
                 eval(model, optimizer, trainLoss) // MLX Swift is lazy!
                 
@@ -95,6 +114,23 @@ struct Train {
     private static func loss(model: GPTModel, inputs: MLXArray, targets: MLXArray) -> MLXArray {
         let logits = model(inputs)
         return crossEntropy(logits: logits, targets: targets, reduction: .mean)
+    }
+    
+    /// Calculates the learning rate using learning rate warmup & cosine decay
+    private static func learningRate(
+        step: Int, totalSteps: Int, warmupSteps: Int,
+        peakLearningRate: Float, minLearningRate: Float
+    ) -> Float {
+        // Linear warmup
+        if step < warmupSteps {
+            return peakLearningRate * Float(step) / Float(warmupSteps)
+        }
+
+        // Cosine decay
+        let progress = Float(step - warmupSteps) / Float(totalSteps - warmupSteps)
+        let cosineDecay = 0.5 * (1 + cos(Float.pi * progress))
+
+        return minLearningRate + (peakLearningRate - minLearningRate) * cosineDecay
     }
     
     private static func printLoss(trainLoss: MLXArray, globalStep: Int) {
