@@ -23,6 +23,9 @@ struct Train {
 
     private static let valTokensDir = Self.baseDir
         .appendingPathComponent("tokens/val")
+    
+    private static let saveWeightsDir = Self.baseDir
+        .appendingPathComponent("weights")
     private static let config = GPTConfig.gpt2Small
     
     private static let batchSize = 8
@@ -53,6 +56,7 @@ struct Train {
             var globalStep = 0
             let printLossFrequency = 50
             let evalFrequency = 1000
+            let saveFrequency = 10_000
             
             model.train()
             
@@ -70,7 +74,12 @@ struct Train {
                 } else if (globalStep % printLossFrequency == 0) {
                     printLoss(trainLoss: trainLoss, globalStep: globalStep)
                 }
+                
+                if (globalStep % saveFrequency == 0) {
+                    try WeightManager.save(module: model, to: saveWeightsDir) // We overwrite it, thats fine
+                }
             }
+            try WeightManager.save(module: model, to: saveWeightsDir) // Save the final model
             
         } catch {
             print("Error: \(error)")
