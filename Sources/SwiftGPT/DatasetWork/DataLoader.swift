@@ -66,6 +66,15 @@ public class DataLoader {
         )
     }
     
+    /// Moves the loader to the given token index
+    /// - parameter index: The token index from which loading should start
+    public func seek(to index: Int) {
+        currentIndex = index
+    }
+    
+    public func getCurrentIndex() -> Int {
+        currentIndex
+    }
     /// Resets the loader by setting its currently read index to 0
     public func reset() {
         currentIndex = 0

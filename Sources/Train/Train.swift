@@ -50,7 +50,7 @@ struct Train {
             )
             
             let model = GPTModel(config: config)
-            let optimizer = AdamW(learningRate: 0.0004, weightDecay: 0.1)
+            let optimizer = AdamW(learningRate: 0.0004, weightDecay: 0.1, biasCorrection: true)
             let lossAndGrad = valueAndGrad(model: model, loss)
             
             var globalStep = 0
@@ -76,10 +76,16 @@ struct Train {
                 }
                 
                 if (globalStep % saveFrequency == 0) {
-                    try WeightManager.save(module: model, to: saveWeightsDir) // We overwrite it, thats fine
+                    try CheckpointManager.save(
+                        module: model, dataLoader: trainLoader,
+                        globalStep: globalStep, to: saveWeightsDir
+                    ) // We overwrite it, thats fine
                 }
             }
-            try WeightManager.save(module: model, to: saveWeightsDir) // Save the final model
+            try CheckpointManager.save(
+                module: model, dataLoader: trainLoader,
+                globalStep: globalStep, to: saveWeightsDir
+            ) // Save the final model
             
         } catch {
             print("Error: \(error)")
