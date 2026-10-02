@@ -20,6 +20,10 @@ let package = Package(
             targets: ["Train"]
         ),
         .executable(
+            name: "infer",
+            targets: ["Inference"]
+        ),
+        .executable(
             name: "prepare-dataset",
             targets: ["PrepareDataset"]
         ),
@@ -58,6 +62,10 @@ let package = Package(
                 "SwiftGPT",
                 .product(name: "MLXLMCommon", package: "mlx-swift-lm"),
             ]
+        ),
+        .executableTarget(
+            name: "Inference",
+            dependencies: ["SwiftGPT"]
         ),
         .testTarget(
             name: "SwiftGPTTests",
